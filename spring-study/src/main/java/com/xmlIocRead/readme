@@ -1,0 +1,48 @@
+spring的初步了解
+	通过Resource加载xml资源，在加载xml资源的时候利用EncodedResource,以特定的编码进行加载资源
+	加载资源主要是同XmlBeanDefinationRead加载
+	资源加载后转换为Document对象，Document对象时对XML和HTML的封装，这样就可以拿到xml中详细的bean信息了
+
+xml的验证模式：DTD,XSD
+
+疑问:
+	ClassLoader,EntityResolver
+	
+待解决的问题：
+	1.Document的详细解析
+	2.利用xml中bean的id获取实例和利用class获取实例的区别
+	3.singletonFactories
+	4.循环依赖：实例A中有B的属性，实例B中有A的属性
+	
+
+xml bean的加载过程
+	1.对xml进行验证，spring利用xml开头是否有<!DOCTYPE>判断是否时DTD，否则就是XSD模式
+	2.利用Resouce加载xml资源，利用EncodedResouce在加载资源的时候，以特定编码进行加载
+	3.将将在的xml的inputStream流信息转换为Document信息，从而解析bean信息，将xml信息转换为Document时XmlBeanDefinationRead中的DocumentLoad加载的,
+	DocumentLoader是一个接口，主要工作的时DefaultDocumentLoader做的
+
+
+
+
+阅读过程中的记录:
+	//用来存储bean的name信息
+	private final Set<String> usedNames = new HashSet<>()
+	
+	BeanDefinitionParserDelegate中拿到实体名加入链表当中，拿到类名
+	
+	将Document中的信息转换为：AbstractBeanDefinition beanDefinition
+	将实体信息和beanName还有bean的别名绑定到一个对象上
+	new BeanDefinitionHolder(beanDefinition, beanName, aliasesArray);
+	
+	
+	创建实体的可能时这个类abstract class AbstractAutowireCapableBeanFactory
+	在ClassUtil中调用return Class.forName(name, false, clToUse); 反射 其中name时类名（在这里面调用的）
+	
+	Constructor
+	
+	在BeanUtils中ctor.newInstance(argsWithDefaultValues);
+	
+	利用private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);存储bean的name和对应实体对象
+	
+	
+	
