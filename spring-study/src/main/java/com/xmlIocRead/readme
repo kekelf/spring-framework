@@ -14,6 +14,8 @@ xml的验证模式：DTD,XSD
 	3.singletonFactories
 	4.循环依赖：实例A中有B的属性，实例B中有A的属性
 	
+	为什么从缓存中拿数据:
+		Object sharedInstance = getSingleton(beanName);
 
 xml bean的加载过程
 	1.对xml进行验证，spring利用xml开头是否有<!DOCTYPE>判断是否时DTD，否则就是XSD模式
@@ -25,14 +27,71 @@ xml bean的加载过程
 
 
 阅读过程中的记录:
-	//用来存储bean的name信息
-	private final Set<String> usedNames = new HashSet<>()
-	
-	BeanDefinitionParserDelegate中拿到实体名加入链表当中，拿到类名
-	
-	将Document中的信息转换为：AbstractBeanDefinition beanDefinition
-	将实体信息和beanName还有bean的别名绑定到一个对象上
-	new BeanDefinitionHolder(beanDefinition, beanName, aliasesArray);
+
+XmlBeanFactory bf = new XmlBeanFactory(cpr);的过程：
+		下列过程主要集中在DefaultBeanDefinitionDocumentReader的processBeanDefinition中
+		1.解析Document对象:	
+			BeanDefinitionParserDelegate利用parseBeanDefinitionElement(Element)解析Document中的bean信息，得到
+			一个BeanDefinitionHolder(beanDefinition, beanName, aliasesArray)的实体（将实体信息和beanName还有bean的别名绑定到一个对象上）
+		
+		2.装饰beanDefinition(解析自定义标签,自己没有用过，暂时没有问题去与它对应，所以不去了解):
+			delegate.decorateBeanDefinitionIfRequired
+		
+		3.注册:ConcurrentHashMap<beanName,BeanDefinition>	
+			/** Map of bean definition objects, keyed by bean name. */
+			private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
+			key为bean name value为bean definition
+		BeanFactory之所以是工厂,就是在new XmlBeanFactory的时候，创建XmlBeanDefinitionReader的时候将自己设置成AbstractBeanDefinitionReader的一个BeanDefinitionRegistry
+		属性，也就是在注册时的registry
+
+
+MyClass mc = (MyClass) bf.getBean("mc");的过程:
+
+问题： bean的依赖注入和循环依赖		
+		1.取得bean的name
+		  /////返回bean的name A信息 如果使用别名B，B指向name A，那么返回A，如果B指向C，C指向bean name为D，那么返回D
+		  ////如果name="&aa",那么去掉&，返回aa
+		  final String beanName = transformedBeanName(name);
+		
+		2.常识从缓存中拿实例
+			Object sharedInstance = getSingleton(beanName);
+		
+		Question：
+			首先常识从缓存中加载getSingleton(bean),如果没有常识从singletonFactories中加载	
+		因为在创建单例bean的时候会存在依赖注入，而在创建依赖的时候为了避免循环依赖，spring时不等bean创建完就
+		将bean加入到ObjectFactory中，一旦下一个bean创建的时候需要依赖上一个bean，直接使用ObjectFactory
+		singletonFactory和earlySingletonObjects的区别
+		
+		这个方法因为涉及循环依赖的检测，以及涉及很多变量的记录存取，所以让很多读者摸不着头脑。这个方法首先尝试从singletonObjects里面获取实例，
+		如果获取不到再从earlySingleton Objects 里面获取，如果还获取不到，再尝试从 singletonFactories 里面获取 beanName 对应的ObjectFactory，
+		然后调用这个 ObjectFactory 的 getObject 来创建 bean，并放到 earlySingleton Objects里面去，并且从singletonFacotories里面remove掉这个ObjectFactory，
+		而对于后续的所有内存操作都只为了循环依赖检测时候使用，也就是在allowEarlyReference为true的情况下才会使用。
+		
+		singletonObjects：用于保存BeanName和创建bean实例之间的关系，bean name --> bean instance。
+		singletonFactories：用于保存BeanName和创建 bean的工厂之间的关系，bean name -->ObjectFactory。
+		earlySingletonObjects：也是保存 BeanName 和创建 bean 实例之间的关系，与singletonObjects的不同之处在于，
+		当一个单例bean被放到这里面后，那么当bean还在创建过程中，就可以通过getBean方法获取到了，其目的是用来检测循环引用。
+		
+		
+		通过XmlBeanFactory.getBean("xml文件中bean的id")拿到的可能时一个实体对象，也可能时一个FactorBean，所以需要getObjectForBeanInstance调用对应FactoryBean.getObject
+		拿到真正的对象
+		
+		
+什么时依赖注入:
+	A类中有一个属性是B的实体
+	当实例化A的时候，先调用A的无参构造器(假设是get/set方式注入属性，如果是构造器注入，那么就要调用有参的构造器了),实例化一个A对象a，但此时a对应的属性没有值，通过遍历资源文件当遍历到a的B属性时
+	，就需要去创建B实例了，这就是依赖注入
+什么时循环依赖:
+	A中有B b属性，B中有C c属性，C中有A a属性，当实例化a的时候先要去实话b，实例化b的时候，由向要去实例化c，实例化c的时候又要先去实例化a，如此循环，这就是循环依赖
+如何解决循环依赖：
+	spring只提供单例的时候循环依赖的解决方案，原型模式下直接报错
+	1.在XmlBeanFactory.getBean("a")的时候，利用getSingleton(beanname)从缓存singletonObjects<beanname,bean>中拿取，如果没有，
+	再次调用getSingleton()这次时尝试创建对象，当然创建对象实在createBean中的doCreateBean()中创建，调用无参构造器创建后，调用addSingletonFactory将<beanname,ObjectFactory<?> singletonFactory>
+	存入singleFactories中，这里singleFactory时a的一个半成品
+	此时给a的属性赋值，发现b时一个对象，便依照a的方式去创建
+	直到在创建c的时候发现a时c的属性，再去创建a，
+	再getSingleton("a")中的singleFactories中拿到a的半成品，将其挂再c上，使得c是一个成品对象，然后一次类推将c挂在b上，将b挂在a上，至此解决循环依赖
+
 	
 	
 	创建实体的可能时这个类abstract class AbstractAutowireCapableBeanFactory
@@ -42,6 +101,7 @@ xml bean的加载过程
 	
 	在BeanUtils中ctor.newInstance(argsWithDefaultValues);
 	
+	////在单例模式下
 	利用private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);存储bean的name和对应实体对象
 	
 	

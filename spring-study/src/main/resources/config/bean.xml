@@ -5,20 +5,35 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 				http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
-	<context:annotation-config />
 
 	<bean id="p" class="com.entity.Person">
 		<property name="name" value="中国"></property>
+		<property name="myClass">
+			<ref bean="myClass"></ref>
+		</property>
 	</bean>
-	<bean id="myClass" class="com.entity.MyClass">
+	
+	<!--
+	 scope="prototype"
+		singleton:则当前bean处在单例模式中,默认就是此模式
+		prototype:则当前bean处在多例模式中   每次BeanFactory.getBean()都是一个新的bean
+	 -->
+	<bean id="myClass" class="com.entity.MyClass" >
 		<property name="cc" value="caoxuekun"></property>
+		<!-- bean的属性是另一个bean -->
 		<property name="person">
 			<ref bean="p"></ref>
 		</property>
 	</bean>
+	<!-- 给bean去一个别名 -->
+	<alias name="myClass" alias="mc"/>
 	
-
-	<!-- <bean id="myClass2" class="com.entity.MyClass"> <property name="cc" 
-		value="中国"></property> </bean> <bean id="myClass3" class="com.entity.MyClass"> 
-		<property name="cc" value="吉拉斯大家看法"></property> </bean> -->
+	<bean id="car" class="com.xmlIocRead.MyFactoryBean.CarFactoryBean">
+		<property name="carInfo" value="超级跑车,200,30000"></property>
+	</bean>
+	
+	<bean id="mySingle" class="com.entity.MySingle" init-method="beforeInitBeanMethod" destroy-method="afterDestoryBeanMethod">
+		<property name="name" value="清华北大"></property>
+	</bean>
+	
 </beans>

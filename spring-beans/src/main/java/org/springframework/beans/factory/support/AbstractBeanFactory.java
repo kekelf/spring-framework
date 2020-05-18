@@ -241,11 +241,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	@SuppressWarnings("unchecked")
 	protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredType,
 			@Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
-
+		/////返回bean的name信息  为什么name这个参数会加一个&(transformedBeanName方法)
 		final String beanName = transformedBeanName(name);
 		Object bean;
-
-		// Eagerly check singleton cache for manually registered singletons.
+		////sharedInstance对应bean的名称为name的对象(如果已经创建了)
+		// Eagerly（急切的） check singleton cache for manually（手工） registered singletons.
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
@@ -262,11 +262,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 		else {
 			// Fail if we're already creating this bean instance:
-			// We're assumably within a circular reference.
+			// We're assumably within a circular(圆环的) reference.
 			if (isPrototypeCurrentlyInCreation(beanName)) {
+				System.out.println("原型模式的时候，循环依赖直接报错");
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
 
+			//why we should need this.
 			// Check if bean definition exists in this factory.
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
@@ -290,6 +292,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			if (!typeCheckOnly) {
+				////在创建之前，就将对应变量名的字符串加入集合中，表明这个对象已经创建了
 				markBeanAsCreated(beanName);
 			}
 
@@ -330,6 +333,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 							throw ex;
 						}
 					});
+					/**
+					 * 拿到的sharedInstance可能是一个FactoryBean，所以需要调用这个方法拿到真正的bean
+					 */
 					bean = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
 				}
 
@@ -343,6 +349,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					finally {
 						afterPrototypeCreation(beanName);
 					}
+					/**
+					 * 拿到的sharedInstance可能是一个FactoryBean，所以需要调用这个方法拿到真正的bean
+					 */
 					bean = getObjectForBeanInstance(prototypeInstance, name, beanName, mbd);
 				}
 
@@ -362,6 +371,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 								afterPrototypeCreation(beanName);
 							}
 						});
+						/**
+						 * 拿到的sharedInstance可能是一个FactoryBean，所以需要调用这个方法拿到真正的bean
+						 */
 						bean = getObjectForBeanInstance(scopedInstance, name, beanName, mbd);
 					}
 					catch (IllegalStateException ex) {

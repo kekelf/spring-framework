@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+				http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+
+	<bean id="a" class="com.xmlIocRead.circleReference.TestA" >
+		<property name="testB">
+			<ref bean="b"/>
+		</property>
+	</bean>
+	
+	<bean id="b" class="com.xmlIocRead.circleReference.TestB" >
+		<property name="sex" value="中华民族"></property>
+		<property name="testC">
+			<ref bean="c"/>
+		</property>
+	</bean>
+	
+	<bean id="c" class="com.xmlIocRead.circleReference.TestC" >
+		<property name="testA">
+			<ref bean="a"/>
+		</property>
+	</bean>
+	
+</beans>
