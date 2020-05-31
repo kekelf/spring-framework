@@ -1,0 +1,6 @@
+查看intercept中的jdk/aop
+显示进入拦截的before方法
+然后利用代理类调用对应类的方法
+饭后执行after方法
+
+方法调用之前进行拦截参考：https://www.cnblogs.com/xing901022/p/4143696.html

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<!-- 通过名字匹配 -->
+	<!-- <bean id="before" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor"> 
+		<property name="advice"> <bean class="com.test.pointcut.beforeAOP"></bean> 
+		</property> <property name="mappedName" value="withoutAop"></property> </bean> -->
+	<!-- 通过正则表达式 匹配 -->
+	<bean id="before"
+		class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+		<property name="advice">
+			<bean class="com.intercept.jdk.BeforeAOPInterceptor"></bean>
+		</property>
+		<property name="patterns">
+			<list>
+				<value>.*out.*</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="after"
+		class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+		<property name="advice">
+			<bean class="com.intercept.jdk.AfterAOPInterceptor"></bean>
+		</property>
+		<property name="patterns">
+			<list>
+				<value>.*out.*</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="exception"
+		class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+		<property name="advice">
+			<bean class="com.intercept.jdk.ThrowsAOPInterceptor"></bean>
+		</property>
+		<property name="patterns">
+			<list>
+				<value>.*out.*</value>
+			</list>
+		</property>
+	</bean>
+	
+	
+	<bean id="aopService"
+		class="org.springframework.aop.framework.ProxyFactoryBean">
+		<property name="interceptorNames">
+			<list>
+				<value>before</value>
+				<value>after</value>
+				<value>exception</value>
+			</list>
+		</property>
+		<property name="target">
+			<bean class="com.intercept.jdk.TestAOP">
+				<property name="name" value="Hello"></property>
+			</bean>
+		</property>
+	</bean>
+	
+</beans>

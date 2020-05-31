@@ -1,6 +1,5 @@
 package com.xmlIocRead.circleReference;
 
-import org.junit.Test;
 import org.springframework.beans.factory.BeanCurrentlyInCreationException;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
