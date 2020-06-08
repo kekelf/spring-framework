@@ -41,3 +41,5 @@ out
 test-output
 atlassian-ide-plugin.xml
 .gradletasknamecache
+spring-study/com/sun/proxy/$Proxy*.class
+spring-study/org/spring-framework/core/$Proxy*.class

@@ -8,5 +8,7 @@ public class TestMain {
     public static void main(String args[]) {
         HelloWorld proxy = (HelloWorld) JdkProxyExample.bind(new HelloWorldImpl(), "com.intercept.writeOneByMyself.InterceptorImpl");
         proxy.sayHelloWorld();
+        
+        proxy.testHello();
     }
 }

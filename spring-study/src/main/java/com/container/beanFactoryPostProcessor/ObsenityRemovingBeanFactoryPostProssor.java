@@ -27,6 +27,7 @@ public class ObsenityRemovingBeanFactoryPostProssor implements BeanFactoryPostPr
 
 				@Override
 				public String resolveStringValue(String strVal) {
+					System.out.println("修改beandifinition");
 					if (isObscene(strVal)) {
 						return "*****";
 					}

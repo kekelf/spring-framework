@@ -35,10 +35,10 @@ public class GetObjectFromXml {
 //		System.out.println(mc.person.myClass.cc);
 		
 		System.out.println("===========FactoryBean============");
-//		Car car =  (Car) bf.getBean("car");
-//		Car c = (Car) bf.getBean("car");
-//		System.out.println(car.hashCode()+"======="+c.hashCode());
-//		System.out.println(car.brand+"=="+car.maxSpeed+"======="+car.getPrice());
+		Car car =  (Car) bf.getBean("car");
+		Car c = (Car) bf.getBean("car");
+		System.out.println(car.hashCode()+"======="+c.hashCode());
+		System.out.println(car.brand+"=="+car.maxSpeed+"======="+car.getPrice());
 		
 		MySingle ms = (MySingle) bf.getBean("mySingle");
 		System.out.println(ms.getName());

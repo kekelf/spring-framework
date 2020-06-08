@@ -4,6 +4,9 @@ public class SimplePostProsessor {
 	private String connectionString;
 	private String password;
 	private String userName;
+	public SimplePostProsessor() {
+		System.out.println("实例化构造器SimplePostProsessor");
+	}
 
 	public String getConnectionString() {
 		return connectionString;
